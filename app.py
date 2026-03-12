@@ -1,5 +1,8 @@
 import streamlit as st
 
+
+#from pawpal_system.py import Pet, Owner, PetCareTask, Scheduler
+
 st.set_page_config(page_title="PawPal+", page_icon="🐾", layout="centered")
 
 st.title("🐾 PawPal+")
@@ -30,7 +33,8 @@ with st.expander("What you need to build", expanded=True):
         """
 
 At minimum, your system should:
-# [MermaidChart: 3c5df3d2-97cb-455e-8e47-a43e262279b1]
+
+[MermaidChart: 3c5df3d2-97cb-455e-8e47-a43e262279b1]
 - Represent pet care tasks (what needs to happen, how long it takes, priority)
 - Represent the pet and the owner (basic info and preferences)
 - Build a plan/schedule for a day that chooses and orders tasks based on constraints

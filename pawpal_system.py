@@ -29,7 +29,6 @@ class Owner:
         self.name = name
         self.pets = []
 
-   
 
     def get_name(self):
         return self.name

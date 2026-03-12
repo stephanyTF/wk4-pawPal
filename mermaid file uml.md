@@ -26,7 +26,7 @@ classDiagram
         +set_duration(duration)
     }
 
-    class DailyPlan {
+    class Scheduler {
         +Date date
         +Owner owner
         +List~PetCareTask~ tasks

@@ -41,12 +41,13 @@ class Owner:
 
 
 class PetCareTask:
-    def __init__(self, description, duration, priority, pet):
+    def __init__(self, description, duration, priority, pet, date=None):
         self.description = description
         self.duration = duration
         self.priority = priority
         self.status = "not started"
         self.pet = pet
+        self.date = date or Date.today()
 
     def set_priority(self, priority):
         self.priority = priority

@@ -52,7 +52,6 @@ st.subheader("Quick Demo Inputs (UI only)")
 
 owner_name = st.text_input("Owner name", placeholder="Enter your name")
 time_available = st.number_input("Time available (minutes)", min_value=1, max_value=1440, placeholder="e.g. 180")
-date = st.date_input("Date", value=Date.today())
 
 if st.button("Add New Owner"):
     if owner_name.strip():
@@ -68,14 +67,17 @@ if "owner" in st.session_state:
 pet_name = st.text_input("Pet name", placeholder="Enter your pet's name")
 species = st.selectbox("Species", ["dog", "cat", "other"])
 
+if "pets" not in st.session_state:
+    st.session_state.pets = []
+
 if st.button("Add New Pet"):
     if pet_name.strip() and "owner" in st.session_state:
-        st.session_state.pet = Pet(pet_name.strip(), species)
+        st.session_state.pets.append(Pet(pet_name.strip(), species))
     else:
         st.warning("Please enter a name first.")
 
-if "pet" in st.session_state:
-    st.success(f"Pet: {st.session_state.pet.get_name()}")
+for p in st.session_state.pets:
+    st.success(f"Pet: {p.get_name()} ({p.get_type()})")
 
 
 
@@ -85,23 +87,34 @@ st.caption("Add a few tasks. In your final version, these should feed into your 
 if "tasks" not in st.session_state:
     st.session_state.tasks = []
 
-col1, col2, col3 = st.columns(3)
+col1, col2, col3, col4, col5 = st.columns(5)
+
 with col1:
-    task_title = st.text_input("Task title", placeholder="e.g. Feed Buddy")
+    pet_options = [p.get_name() for p in st.session_state.pets]
+    selected_pet_name = st.selectbox("Pet", pet_options if pet_options else ["—"])
 with col2:
-    duration = st.number_input("Duration (minutes)", min_value=1, max_value=240, placeholder="e.g. 15")
+    task_title = st.text_input("Task title", placeholder="e.g. Feed Buddy")
 with col3:
+    duration = st.number_input("Duration (minutes)", min_value=1, max_value=240, placeholder="e.g. 15")
+with col4:
     priority = st.selectbox("Priority", ["low", "medium", "high"], placeholder="Select priority")
+with col5:
+    task_date = st.date_input("Date", value=Date.today())
 
 if st.button("Add task"):
-    task = PetCareTask(task_title,int(duration),priority,st.session_state.pet)
-    st.session_state.tasks.append(task)
+    selected_pet = next((p for p in st.session_state.pets if p.get_name() == selected_pet_name), None)
+    if selected_pet:
+        task = PetCareTask(task_title, int(duration), priority, selected_pet, date=task_date)
+        st.session_state.tasks.append(task)
+    else:
+        st.warning("Please add a pet before creating tasks.")
 
 
 if st.session_state.tasks:
     st.write("Current tasks:")
     task_rows = [
         {
+            "Date": task.date.strftime("%Y-%m-%d"),
             "Pet": task.pet.get_name(),
             "Description": task.description,
             "Duration": task.get_duration_display(),
@@ -125,7 +138,7 @@ if st.button("Generate schedule"):
     if "owner" not in st.session_state or not st.session_state.tasks:
         st.warning("Please add an owner and at least one task first.")
     else:
-        time_available = st.session_state.get("time_available", 120)
+        time_available = st.session_state.get("time_available", time_available)
         scheduler = Scheduler(st.session_state.owner, time_available)
 
         for task in st.session_state.tasks:
@@ -150,3 +163,20 @@ if st.button("Generate schedule"):
             for task in plan
         ]
         st.table(plan_rows)
+
+        excluded = [t for t in st.session_state.tasks if t not in plan]
+        if excluded:
+            st.warning(
+                f"{len(excluded)} task(s) were excluded because they couldn't fit within "
+                f"the available time ({scheduler.get_time_available_display()}):"
+            )
+            excluded_rows = [
+                {
+                    "Pet": t.pet.get_name(),
+                    "Description": t.description,
+                    "Duration": t.get_duration_display(),
+                    "Priority": t.priority,
+                }
+                for t in excluded
+            ]
+            st.table(excluded_rows)
